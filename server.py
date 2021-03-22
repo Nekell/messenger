@@ -25,17 +25,18 @@ def hello():
 
 @app.route('/status')
 def status():
+    # TODO something cool(возвращал количество человек и сообщений на сервере
     return {
         'status': True,
         'name': 'My Messenger',
         'time': time(),
         'time2': datetime.now().isoformat(),
-        'time3': datetime.now().strftime('%d %B %H:%M')
+        'time3': datetime.now().strftime('%d %B %H:%M:%S')
     }
 
 
 @app.route('/send', methods=['POST'])
-def send_message(name, text):
+def send_message():
     data = request.json()
     if not isinstance(data, dict):
         return abort(400)
@@ -49,8 +50,6 @@ def send_message(name, text):
     if not isinstance(text, str) or len(text) == 0 or len(text) > 1000:
         return abort(400)
 
-    # TODO validation
-
     message = {
         'name': name,
         'text': text,
@@ -58,17 +57,29 @@ def send_message(name, text):
     }
     messages.append(message)
 
+    # if message == '/help':
+    #     messages.append({
+    #         'name': 'bot',
+    #         'text': 'Я сам ничего не знаю',
+    #         'time': time()
+    #     })
+    # TODO перенести бота на ресивер
+
     return {'ok': True}
 
 
-def get_messages(after):
-    # TODO after, validation
+@app.route('/messages')
+def get_messages():
+    try:
+        after = float(request.args['after'])
+    except:
+        return abort(400)
 
     response = []
     for message in messages:
         if message['time'] > after:
             response.append(message)
-    return response[:50]
+    return {'messages': response[:50]}
 
 
 app.run()
